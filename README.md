@@ -24,7 +24,6 @@ This enables NetDevOps teams to integrate vulnerability checks into CI/CD pipeli
 - Designed to be vendor-agnostic and extensible to other network platforms. 
 ---
 
-
 ## Getting Started
 ### Access
 - **web portal**: (coming soon)
