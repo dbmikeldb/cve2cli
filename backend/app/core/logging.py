@@ -6,6 +6,12 @@ import os
 
 from logging.handlers import RotatingFileHandler
 
+from backend.app.core.config import settings
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+LOG_DIR = os.path.join(BASE_DIR, 'logging')
+
+log_level = settings.logging_level
 
 def create_log_handler(log_file, log_level=logging.DEBUG):
     """
@@ -29,7 +35,7 @@ def create_log_handler(log_file, log_level=logging.DEBUG):
     return log_handler
 
 
-def setup_logger(name, log_file, log_level=logging.DEBUG, to_console=True):
+def setup_logger(name, log_file, log_level=logging.INFO, to_console=True):
     """
     This function is used to create the logger per service, calling the helper function create_log_handler.
 
@@ -46,9 +52,9 @@ def setup_logger(name, log_file, log_level=logging.DEBUG, to_console=True):
     logger = logging.getLogger(name)
     logger.setLevel(log_level)
 
-    if not logging.handlers:
-        logger.addHandler(create_log_handler(log_file, log_level))
 
+    if not logger.hasHandlers():
+        logger.addHandler(create_log_handler(log_file, log_level))
 
     if to_console:
         stream_handler = logging.StreamHandler()
@@ -59,5 +65,7 @@ def setup_logger(name, log_file, log_level=logging.DEBUG, to_console=True):
     return logger
 
 
-app_logger = setup_logger('app', '../logging/app.log', logging.DEBUG)
-auth_logger = setup_logger('auth', '../logging/auth.log', logging.DEBUG)
+
+api_logger = setup_logger('api', os.path.join(LOG_DIR, 'api.log'), log_level=log_level)
+app_logger = setup_logger('app', os.path.join(LOG_DIR, 'app.log'), log_level=log_level)
+auth_logger = setup_logger('auth', os.path.join(LOG_DIR, 'auth.log'), log_level=log_level)

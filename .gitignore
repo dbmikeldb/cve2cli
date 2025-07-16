@@ -6,3 +6,6 @@
 
 # Ignore environment variables.
 .env.*
+
+# Ignore all logging.
+logging/
