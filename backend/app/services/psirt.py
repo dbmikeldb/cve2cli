@@ -5,7 +5,7 @@ import httpx
 from urllib.parse import urlencode
 from typing import Optional
 
-from app.core.config import settings
+from backend.app.core.config import settings
 
 client_id = settings.cisco_client_id
 client_secret = settings.cisco_client_secret

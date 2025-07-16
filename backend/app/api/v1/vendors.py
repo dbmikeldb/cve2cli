@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, HTTPException
 
-from app.services.psirt import fetch_cve_data
+from backend.app.services.psirt import fetch_cve_data
 
 router = APIRouter(prefix = "/vendor", tags=["vendor"])
 
