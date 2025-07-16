@@ -1,0 +1,8 @@
+# Ignore all venv paths.
+**/venv/
+
+# Ignore all PyCache paths.
+*.pyc
+
+# Ignore environment variables.
+.env
