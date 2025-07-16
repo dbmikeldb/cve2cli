@@ -69,3 +69,4 @@ def setup_logger(name, log_file, log_level=logging.INFO, to_console=True):
 api_logger = setup_logger('api', os.path.join(LOG_DIR, 'api.log'), log_level=log_level)
 app_logger = setup_logger('app', os.path.join(LOG_DIR, 'app.log'), log_level=log_level)
 auth_logger = setup_logger('auth', os.path.join(LOG_DIR, 'auth.log'), log_level=log_level)
+cve_logger = setup_logger('cve', os.path.join(LOG_DIR, 'cve.log'), log_level=log_level)

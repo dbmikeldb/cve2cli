@@ -7,7 +7,7 @@ from urllib.parse import urlencode
 from typing import Optional
 
 from backend.app.core.config import settings
-from backend.app.core.logging import api_logger, app_logger, auth_logger
+from backend.app.core.logging import api_logger, app_logger, auth_logger, cve_logger
 from backend.app.utils.data_formatting import format_json
 
 client_id = settings.cisco_client_id
@@ -31,7 +31,7 @@ async def get_access_token() -> str:
         "Content-Type": "application/x-www-form-urlencoded"
     }
 
-    auth_logger.info("Requesting Cisco access token.")
+    auth_logger.debug("Requesting Cisco access token.")
 
     try:
         async with httpx.AsyncClient() as client:
@@ -51,7 +51,7 @@ async def get_access_token() -> str:
     if not token:
         auth_logger.warning("Access token not found in response!")
     else:
-        auth_logger.debug("Access token successfully retrieved.")
+        auth_logger.info("Access token successfully retrieved.")
 
     app_logger.debug("Exiting 'get_access_token'.")
     return token
@@ -71,7 +71,10 @@ async def fetch_cve_data(cve_id: str) -> Optional[dict]:
 
         if resp.status_code == 200:
             app_logger.debug(f"Successfully fetched CVE data for {cve_id}")
+            
             pretty_json = format_json(resp.json())
+
+            cve_logger.debug(f"CVE Data: {pretty_json}")
 
             return pretty_json
 
