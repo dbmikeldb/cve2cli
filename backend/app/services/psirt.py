@@ -1,7 +1,6 @@
 # backend/app/services/psirt.py
 
 import httpx
-import json
 
 from urllib.parse import urlencode
 from typing import Optional
@@ -13,13 +12,12 @@ from backend.app.utils.data_formatting import format_json
 client_id = settings.cisco_client_id
 client_secret = settings.cisco_client_secret
 
-
 AUTH_URL = "https://id.cisco.com/oauth2/default/v1/token"
-PSIRT_API_URL = "https://apix.cisco.com/security/advisories/v2/cve/"
+PSIRT_CVE_URL = "https://apix.cisco.com/security/advisories/v2/cve/"
+PSIRT_ADVISORY_URL = "https://apix.cisco.com/security/advisories/v2/advisory/"
 
 
 async def get_access_token() -> str:
-
     app_logger.debug("Function 'get_access_token' beginning.")
 
     data = {
@@ -38,7 +36,6 @@ async def get_access_token() -> str:
             api_logger.debug(f"POST {AUTH_URL} | Headers: {headers} | Payload: {data}")
             resp = await client.post(AUTH_URL, data=urlencode(data), headers=headers)
             resp.raise_for_status()
-
     except httpx.HTTPStatusError as http_err:
         auth_logger.error(f"HTTP error while getting access token: {http_err.response.status_code} {http_err.response.text}")
         raise
@@ -47,7 +44,6 @@ async def get_access_token() -> str:
         raise
 
     token = resp.json().get("access_token")
-
     if not token:
         auth_logger.warning("Access token not found in response!")
     else:
@@ -55,43 +51,53 @@ async def get_access_token() -> str:
 
     app_logger.debug("Exiting 'get_access_token'.")
     return token
-    
+
+
+async def _fetch_psirt(url: str, token: str) -> Optional[dict]:
+    headers = {"Authorization": f"Bearer {token}"}
+    async with httpx.AsyncClient() as client:
+        try:
+            resp = await client.get(url, headers=headers)
+            resp.raise_for_status()
+            return resp.json()
+        except httpx.HTTPStatusError as e:
+            cve_logger.error(f"HTTP error fetching {url}: {e}")
+        except httpx.RequestError as e:
+            cve_logger.error(f"Request error fetching {url}: {e}")
+        return None
+
 
 async def fetch_cve_data(cve_id: str) -> Optional[dict]:
     app_logger.debug(f"Starting 'fetch_cve_data' for CVE ID: {cve_id}")
-
     try:
         token = await get_access_token()
-        headers = {"Authorization": f"Bearer {token}"}
-        
-        api_logger.info(f"Fetching CVE data from {PSIRT_API_URL}{cve_id}")
-
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(f"{PSIRT_API_URL}{cve_id}", headers=headers)
-
-        if resp.status_code == 200:
-            app_logger.debug(f"Successfully fetched CVE data for {cve_id}")
-            
-            pretty_json = format_json(resp.json())
-
-            cve_logger.debug(f"CVE Data: {pretty_json}")
-
-            return pretty_json
-
-        elif resp.status_code == 404:
-            app_logger.warning(f"CVE ID {cve_id} not found (404). Returning None.")
-            return None
-
-        else:
-            resp.raise_for_status()
-
-    except httpx.HTTPStatusError as http_err:
-        app_logger.error(f"HTTP error fetching CVE {cve_id}: {http_err}")
-        raise
-
+        data = await _fetch_psirt(f"{PSIRT_CVE_URL}{cve_id}", token)
+        if data:
+            pretty = format_json(data)
+            cve_logger.debug(f"CVE Data: {pretty}")
+            return pretty
+        app_logger.warning(f"CVE ID {cve_id} not found or no data.")
+        return None
     except Exception as e:
         app_logger.error(f"Unexpected error in 'fetch_cve_data' for {cve_id}: {e}")
         raise
-
     finally:
         app_logger.debug(f"Exiting 'fetch_cve_data' for CVE ID: {cve_id}")
+
+
+async def fetch_advisory_data(advisory_id: str) -> Optional[dict]:
+    app_logger.debug(f"Starting 'fetch_advisory_data' for Advisory ID: {advisory_id}")
+    try:
+        token = await get_access_token()
+        data = await _fetch_psirt(f"{PSIRT_ADVISORY_URL}{advisory_id}", token)
+        if data:
+            pretty = format_json(data)
+            cve_logger.debug(f"Advisory Data: {pretty}")
+            return pretty
+        app_logger.warning(f"Advisory ID {advisory_id} not found or no data.")
+        return None
+    except Exception as e:
+        app_logger.error(f"Unexpected error in 'fetch_advisory_data' for {advisory_id}: {e}")
+        raise
+    finally:
+        app_logger.debug(f"Exiting 'fetch_advisory_data' for Advisory ID: {advisory_id}")

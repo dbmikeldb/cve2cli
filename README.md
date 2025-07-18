@@ -17,12 +17,18 @@ This enables NetDevOps teams to integrate vulnerability checks into CI/CD pipeli
 
 ---
 
-## Features
+## Feasability
 
-- Parses Vendor's advisories through their API to extract relevant vulnerability data.
-- Outputs structured JSON with CLI checks and remediation commands.
-- Designed to be vendor-agnostic and extensible to other network platforms. 
----
+The below table summarises the progress made to determine the feasiability of applying cve2cli for multiple Vendors. 
+
+| Vendor    | Status | Description |
+|-----------|--------|-------------|
+| Cisco     |   🔴   | After Proof of Concept testing pulling data via Cisco's PSIRT OpenVuln API (both CVE and Advisory), it was realised that the information visible in the webpage is not matched 1:1 to the API, which leaves out critical information such as commands to run on the CLI. |
+| Palo Alto | TBC    | TBC         |
+| Juniper   | TBC    | TBC         |
+
+
+
 
 ## Getting Started
 ### Access
